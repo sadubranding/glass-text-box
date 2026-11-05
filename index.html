@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Liquid Glass Text</title>
-<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600&family=Noto+Sans+Bengali:wght@400;600&family=Noto+Serif+Bengali:wght@400;600&family=Tiro+Bangla&family=Baloo+Da+2:wght@400;600&family=Anek+Bangla:wght@400;600&family=Galada&family=Atma:wght@400;600&family=Mukta:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#fff;color:#111;font-family:Inter,"Hind Siliguri","Noto Sans Bengali",sans-serif;padding:14px;max-width:720px;margin-inline:auto}
@@ -15,10 +15,11 @@ h1{font-size:20px;margin:6px 0 12px}
 button{font:inherit;cursor:pointer}
 .btn{background:#111;color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:600}
 .btn.alt{background:#fff;color:#111;border:1px solid #ccc}
-#stage{border-radius:16px;min-height:220px;display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden;border:1px solid #e5e5e5;background:linear-gradient(135deg,#3b6a94,#7fb0d6)}
+#stage{border-radius:16px;min-height:220px;display:flex;padding:16px;overflow-x:auto;overflow-y:hidden;border:1px solid #e5e5e5;background:linear-gradient(135deg,#3b6a94,#7fb0d6)}
 #stage.flower{background:radial-gradient(circle at 30% 40%,#ff7a45 0,transparent 35%),radial-gradient(circle at 60% 55%,#ffb347 0,transparent 30%),radial-gradient(circle at 75% 30%,#f7c6d8 0,transparent 25%),linear-gradient(135deg,#3b6a94,#7fb0d6)}
 #stage.check{background:repeating-conic-gradient(#ddd 0 25%,#fff 0 50%) 0 0/20px 20px}
-canvas{max-width:100%;height:auto}
+canvas{flex:none;margin:auto}
+select{width:100%;font:inherit;font-size:16px;padding:11px;border:1px solid #ccc;border-radius:10px;background:#fff;color:#111}
 label{display:block;font-size:13px;margin:12px 0 4px;color:#444}
 input[type=text]{width:100%;font:inherit;font-size:17px;padding:12px;border:1px solid #ccc;border-radius:10px;background:#fff;color:#111}
 input[type=range]{width:100%}
@@ -45,6 +46,9 @@ details input{margin:4px 0}
 
 <label>লেখা (বাংলা / English)</label>
 <input type="text" id="txt" placeholder="এখানে লিখুন...">
+
+<label>ফন্ট স্টাইল</label>
+<select id="font"></select>
 
 <label>লেখার রং</label>
 <div class="row" id="sws"></div>
@@ -75,8 +79,9 @@ details input{margin:4px 0}
 </details>
 
 <script>
-const FF='Inter,"Hind Siliguri","Noto Sans Bengali",sans-serif';
-const DEF={text:'Liquid Glass',color:'#ffffff',tint:'#bfe3ff',opacity:60,size:64,bold:false};
+const FONTS=['Hind Siliguri', 'Noto Sans Bengali', 'Noto Serif Bengali', 'Tiro Bangla', 'Baloo Da 2', 'Anek Bangla', 'Galada', 'Atma', 'Mukta', 'Inter'];
+const ff=()=>`"${cfg.font}","Hind Siliguri","Noto Sans Bengali",sans-serif`;
+const DEF={font:'Hind Siliguri',text:'Liquid Glass',color:'#ffffff',tint:'#bfe3ff',opacity:60,size:64,bold:false};
 const $=id=>document.getElementById(id);
 let cfg=Object.assign({},DEF,JSON.parse(localStorage.getItem('lg_cfg')||'{}'));
 let dirty=localStorage.getItem('lg_dirty')==='1';
@@ -84,7 +89,7 @@ let dirty=localStorage.getItem('lg_dirty')==='1';
 const rgba=(hex,a)=>{const n=parseInt(hex.slice(1),16);return `rgba(${n>>16},${(n>>8)&255},${n&255},${a})`};
 
 function render(S){
-  const fs=cfg.size,op=cfg.opacity/100,font=`${cfg.bold?600:400} ${fs}px ${FF}`;
+  const fs=cfg.size,op=cfg.opacity/100,font=`${cfg.bold?600:400} ${fs}px ${ff()}`;
   const m=document.createElement('canvas').getContext('2d');m.font=font;
   const txt=cfg.text||' ',tw=m.measureText(txt).width;
   const h=fs*2.1,w=Math.max(tw+fs*1.8,h),mg=24,W=w+mg*2,H=h+mg*2;
@@ -117,11 +122,12 @@ function render(S){
   return {cv,W,H};
 }
 
-function draw(){
-  const {cv,W}=render(2);
+async function draw(){
+  try{await document.fonts.load(`${cfg.size}px "${cfg.font}"`,cfg.text||'A')}catch(e){}
+  const {cv,W,H}=render(2);
   const p=$('cv');p.width=cv.width;p.height=cv.height;
   p.getContext('2d').drawImage(cv,0,0);
-  p.style.width=(W)+'px';
+  p.style.width=W+'px';p.style.height=H+'px';
 }
 
 function changed(){
@@ -164,7 +170,7 @@ async function ghGet(){
 }
 
 function sync(){
-  $('txt').value=cfg.text;$('tc').value=cfg.color;$('gc').value=cfg.tint;
+  $('font').value=cfg.font;$('txt').value=cfg.text;$('tc').value=cfg.color;$('gc').value=cfg.tint;
   $('op').value=cfg.opacity;$('sz').value=cfg.size;$('bold').checked=cfg.bold;
   $('opv').textContent=cfg.opacity+'%';$('szv').textContent=cfg.size;
 }
@@ -173,6 +179,8 @@ function sync(){
   const b=document.createElement('button');b.className='sw';b.style.background=c;
   b.onclick=()=>{cfg.color=c;$('tc').value=c;changed()};$('sws').appendChild(b);
 });
+FONTS.forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f;$('font').appendChild(o)});
+$('font').onchange=e=>{cfg.font=e.target.value;changed()};
 $('txt').oninput=e=>{cfg.text=e.target.value;changed()};
 $('tc').oninput=e=>{cfg.color=e.target.value;changed()};
 $('gc').oninput=e=>{cfg.tint=e.target.value;changed()};
@@ -183,7 +191,8 @@ document.querySelectorAll('#bgSeg button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#bgSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
   $('stage').className=b.dataset.bg;
 });
-$('dl').onclick=()=>{
+$('dl').onclick=async()=>{
+  try{await document.fonts.load(`${cfg.size}px "${cfg.font}"`,cfg.text||'A')}catch(e){}
   const {cv}=render(4);
   cv.toBlob(bl=>{
     const a=document.createElement('a');a.href=URL.createObjectURL(bl);

@@ -116,9 +116,10 @@ function render(S){
   g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.35,'rgba(255,255,255,.18)');g.addColorStop(.65,'rgba(255,255,255,.18)');g.addColorStop(1,'rgba(255,255,255,.85)');
   path();x.lineWidth=2.2;x.strokeStyle=g;x.stroke();
   // text
-  x.font=font;x.textAlign='center';x.textBaseline='middle';
+  x.font=font;x.textAlign='center';x.textBaseline='alphabetic';
+  const tm=m.measureText(txt),asc=tm.actualBoundingBoxAscent||fs*.7,desc=tm.actualBoundingBoxDescent||0;
   x.shadowColor='rgba(0,0,0,.2)';x.shadowBlur=8*S;x.shadowOffsetY=2*S;
-  x.fillStyle=cfg.color;x.fillText(txt,W/2,mg+h/2+fs*.04);
+  x.fillStyle=cfg.color;x.fillText(txt,W/2,mg+h/2+(asc-desc)/2);
   return {cv,W,H};
 }
 
